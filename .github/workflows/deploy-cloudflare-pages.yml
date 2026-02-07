@@ -51,10 +51,18 @@ jobs:
           fi
           echo "Cloudflare Pages project: $CF_PROJECT_NAME"
 
+      - name: Ensure Cloudflare Pages project exists
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || secrets.CF_ACCOUNT_ID }}
+          command: pages project create ${{ vars.CLOUDFLARE_PROJECT_NAME || vars.CF_PAGES_PROJECT || github.event.repository.name }} --production-branch=main
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || secrets.CF_ACCOUNT_ID }}
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-          command: pages deploy .cloudflare-deploy --project-name=${{ vars.CLOUDFLARE_PROJECT_NAME || vars.CF_PAGES_PROJECT || github.event.repository.name }} --branch=main
+          command: pages deploy .cloudflare-deploy --project-name=${{ vars.CLOUDFLARE_PROJECT_NAME || vars.CF_PAGES_PROJECT || github.event.repository.name }} --branch=main --commit-dirty=true
