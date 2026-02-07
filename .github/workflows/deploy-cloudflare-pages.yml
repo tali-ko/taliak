@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      deployments: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,9 +27,34 @@ jobs:
           cp index.html styles.css .cloudflare-deploy/
           cp -r assets .cloudflare-deploy/
 
+      - name: Validate Cloudflare config
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || secrets.CF_ACCOUNT_ID }}
+          CF_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME || vars.CF_PAGES_PROJECT || github.event.repository.name }}
+        run: |
+          missing=0
+          if [ -z "$CF_API_TOKEN" ]; then
+            echo "::error::Missing GitHub secret CLOUDFLARE_API_TOKEN (or CF_API_TOKEN)."
+            missing=1
+          fi
+          if [ -z "$CF_ACCOUNT_ID" ]; then
+            echo "::error::Missing GitHub secret CLOUDFLARE_ACCOUNT_ID (or CF_ACCOUNT_ID)."
+            missing=1
+          fi
+          if [ -z "$CF_PROJECT_NAME" ]; then
+            echo "::error::Missing Cloudflare Pages project name."
+            missing=1
+          fi
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+          echo "Cloudflare Pages project: $CF_PROJECT_NAME"
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy .cloudflare-deploy --project-name=${{ vars.CLOUDFLARE_PROJECT_NAME }} --branch=main
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || secrets.CF_ACCOUNT_ID }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: pages deploy .cloudflare-deploy --project-name=${{ vars.CLOUDFLARE_PROJECT_NAME || vars.CF_PAGES_PROJECT || github.event.repository.name }} --branch=main

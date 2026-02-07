@@ -26,3 +26,8 @@ On every push to `main`, GitHub Actions deploys the site to Cloudflare Pages.
 3. In GitHub repository settings, add variable:
    - `CLOUDFLARE_PROJECT_NAME` (your Pages project name)
 4. Push to `main`.
+
+Notes:
+- Alternate secret names also supported: `CF_API_TOKEN`, `CF_ACCOUNT_ID`.
+- Alternate variable name also supported: `CF_PAGES_PROJECT`.
+- If no project variable is set, workflow falls back to the GitHub repository name.
