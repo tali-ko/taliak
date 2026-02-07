@@ -15,14 +15,8 @@ Open `http://localhost:8080`.
 Drop project pages in `projects/` as `.html` files (example:
 `projects/hello-world.html`).
 
-To refresh the local project list:
-
-```bash
-node scripts/generate-projects-manifest.mjs
-```
-
-The deploy workflow generates this manifest automatically on every push to
-`main`.
+The homepage discovers project pages dynamically using the GitHub Contents API
+for this repo (`tali-ko/taliak`, branch `main`).
 
 ## Auto-deploy to Cloudflare Pages
 

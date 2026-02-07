@@ -20,9 +20,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Generate projects manifest
-        run: node scripts/generate-projects-manifest.mjs
-
       - name: Prepare deploy directory
         run: |
           rm -rf .cloudflare-deploy
