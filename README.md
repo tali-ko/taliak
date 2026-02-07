@@ -10,12 +10,19 @@ python3 -m http.server 8080
 
 Open `http://localhost:8080`.
 
-## Deploy to Cloudflare Pages
+## Auto-deploy to Cloudflare Pages
 
-1. Push this repo to GitHub.
-2. In Cloudflare Pages, create a new project and connect the repo.
-3. Build settings:
-   - Framework preset: `None`
-   - Build command: *(leave empty)*
-   - Build output directory: `/`
-4. Deploy.
+This repo includes a GitHub Actions workflow at
+`.github/workflows/deploy-cloudflare-pages.yml`.
+
+On every push to `main`, GitHub Actions deploys the site to Cloudflare Pages.
+
+### One-time setup
+
+1. Create a Cloudflare Pages project.
+2. In GitHub repository settings, add secrets:
+   - `CLOUDFLARE_API_TOKEN`
+   - `CLOUDFLARE_ACCOUNT_ID`
+3. In GitHub repository settings, add variable:
+   - `CLOUDFLARE_PROJECT_NAME` (your Pages project name)
+4. Push to `main`.
