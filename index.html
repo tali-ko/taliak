@@ -50,6 +50,75 @@
           </ul>
         </div>
       </section>
+
+      <section class="projects" aria-labelledby="projects-title">
+        <h2 id="projects-title">My Projects</h2>
+        <p class="projects-note">
+          Drop HTML files in <code>projects/</code> and they will appear here
+          after deploy.
+        </p>
+        <ul id="projects-list" class="projects-list">
+          <li class="project-card placeholder">Loading projects...</li>
+        </ul>
+      </section>
     </main>
+
+    <script>
+      (async () => {
+        const list = document.getElementById("projects-list");
+
+        const showMessage = (message) => {
+          list.innerHTML = "";
+          const item = document.createElement("li");
+          item.className = "project-card placeholder";
+          item.textContent = message;
+          list.appendChild(item);
+        };
+
+        try {
+          const response = await fetch("projects/manifest.json", {
+            cache: "no-store",
+          });
+
+          if (!response.ok) {
+            throw new Error("Manifest not available");
+          }
+
+          const projects = await response.json();
+          if (!Array.isArray(projects) || projects.length === 0) {
+            showMessage("No projects yet. Add an HTML file to projects/.");
+            return;
+          }
+
+          list.innerHTML = "";
+          for (const project of projects) {
+            if (
+              !project ||
+              typeof project.title !== "string" ||
+              typeof project.path !== "string"
+            ) {
+              continue;
+            }
+
+            const item = document.createElement("li");
+            item.className = "project-card";
+
+            const link = document.createElement("a");
+            link.href = project.path;
+            link.textContent = project.title;
+            link.className = "project-link";
+
+            item.appendChild(link);
+            list.appendChild(item);
+          }
+
+          if (!list.children.length) {
+            showMessage("No valid projects found.");
+          }
+        } catch (error) {
+          showMessage("Projects list is unavailable right now.");
+        }
+      })();
+    </script>
   </body>
 </html>

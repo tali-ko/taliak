@@ -10,6 +10,20 @@ python3 -m http.server 8080
 
 Open `http://localhost:8080`.
 
+## Add projects
+
+Drop project pages in `projects/` as `.html` files (example:
+`projects/hello-world.html`).
+
+To refresh the local project list:
+
+```bash
+node scripts/generate-projects-manifest.mjs
+```
+
+The deploy workflow generates this manifest automatically on every push to
+`main`.
+
 ## Auto-deploy to Cloudflare Pages
 
 This repo includes a GitHub Actions workflow at

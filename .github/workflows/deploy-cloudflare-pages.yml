@@ -20,12 +20,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Generate projects manifest
+        run: node scripts/generate-projects-manifest.mjs
+
       - name: Prepare deploy directory
         run: |
           rm -rf .cloudflare-deploy
           mkdir -p .cloudflare-deploy
           cp index.html styles.css .cloudflare-deploy/
           cp -r assets .cloudflare-deploy/
+          cp -r projects .cloudflare-deploy/
 
       - name: Validate Cloudflare config
         env:

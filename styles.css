@@ -161,6 +161,66 @@ h1 {
   font-size: 1.02rem;
 }
 
+.projects {
+  margin-top: 1.4rem;
+  padding: 1.1rem 1rem;
+  border-radius: 22px;
+  background: linear-gradient(140deg, #e9fbff, #eef6ff);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.82);
+  animation: rise-in 1020ms ease both;
+  animation-delay: 360ms;
+}
+
+.projects h2 {
+  margin: 0;
+  font-family: "Fredoka", "Trebuchet MS", sans-serif;
+  font-size: clamp(1.28rem, 2.8vw, 1.72rem);
+}
+
+.projects-note {
+  margin: 0.45rem 0 0.8rem;
+}
+
+.projects-note code {
+  padding: 0.1rem 0.35rem;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 0.95em;
+}
+
+.projects-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.7rem;
+}
+
+.project-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #d7edff;
+  box-shadow: 0 6px 14px rgba(16, 74, 116, 0.08);
+}
+
+.project-link {
+  color: #10456a;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.project-link:hover,
+.project-link:focus-visible {
+  text-decoration: underline;
+}
+
+.placeholder {
+  color: #34566f;
+  font-weight: 600;
+}
+
 @keyframes drift {
   from {
     transform: translate3d(0, 0, 0);
@@ -197,5 +257,10 @@ h1 {
 
   .details {
     padding: 0.95rem 0.95rem 1rem;
+  }
+
+  .projects {
+    margin-top: 1rem;
+    padding: 0.9rem 0.8rem;
   }
 }
