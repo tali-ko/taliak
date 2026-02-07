@@ -177,17 +177,6 @@ h1 {
   font-size: clamp(1.28rem, 2.8vw, 1.72rem);
 }
 
-.projects-note {
-  margin: 0.45rem 0 0.8rem;
-}
-
-.projects-note code {
-  padding: 0.1rem 0.35rem;
-  border-radius: 8px;
-  background: #ffffff;
-  font-size: 0.95em;
-}
-
 .projects-list {
   margin: 0;
   padding: 0;
