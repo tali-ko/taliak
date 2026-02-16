@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Touch Snake</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #111;
+  }
+  canvas {
+    display: block;
+  }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resize);
+resize();
+
+let snake = [{ x: canvas.width/2, y: canvas.height/2 }];
+let snakeLength = 20;
+let target = { x: canvas.width/2, y: canvas.height/2 };
+
+let fruit = spawnFruit();
+
+function spawnFruit() {
+  return {
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: 10
+  };
+}
+
+// Mouse
+canvas.addEventListener("mousemove", e => {
+  target.x = e.clientX;
+  target.y = e.clientY;
+});
+
+// Touch
+canvas.addEventListener("touchmove", e => {
+  const t = e.touches[0];
+  target.x = t.clientX;
+  target.y = t.clientY;
+}, { passive: true });
+
+function update() {
+  // move head toward finger
+  const head = snake[0];
+  const dx = target.x - head.x;
+  const dy = target.y - head.y;
+  const dist = Math.hypot(dx, dy);
+
+  const speed = 4;
+  if (dist > 1) {
+    head.x += dx / dist * speed;
+    head.y += dy / dist * speed;
+  }
+
+  // add new head position
+  snake.unshift({ x: head.x, y: head.y });
+
+  // trim snake
+  while (snake.length > snakeLength) {
+    snake.pop();
+  }
+
+  // fruit collision
+  const d = Math.hypot(head.x - fruit.x, head.y - fruit.y);
+  if (d < fruit.r + 6) {
+    snakeLength += 10;
+    fruit = spawnFruit();
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // fruit
+  ctx.fillStyle = "red";
+  ctx.beginPath();
+  ctx.arc(fruit.x, fruit.y, fruit.r, 0, Math.PI*2);
+  ctx.fill();
+
+  // snake
+  for (let i = snake.length - 1; i >= 0; i--) {
+    const p = snake[i];
+    const t = i / snake.length;
+    ctx.fillStyle = `hsl(${120 - t*60}, 70%, 50%)`;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 8, 0, Math.PI*2);
+    ctx.fill();
+  }
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
+</body>
+</html>
