@@ -101,6 +101,11 @@ body {
   margin-left: 10px;
 }
 
+#rules {
+  front-size: 21px;
+  margin-left:10px;
+}
+
 #countdown {
   font-size: 20px;
   margin-top: 10px;
@@ -116,7 +121,11 @@ button {
 
 <body>
 
+
+  
 <div id="blocksPanel">
+  
+    <span id="rules">move your car and collect all money to pass to the next level.</span>
   <h3>Blocks</h3>
 
   <div class="block" draggable="true" data-type="go">
@@ -137,7 +146,9 @@ button {
 </div>
 
 <div id="gamePanel">
-  <div id="score">Score: 0 | Level: 1 <span id="stars"></span></div>
+  <div id="score">Score: 0 | Level: 1 <span id="stars"></span>
+  
+  </div>
   <div id="grid"></div>
   <div id="car"></div>
 
