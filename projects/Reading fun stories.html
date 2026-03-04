@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Story Book</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(to right, #8e9eab, #eef2f3);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .book {
+        width: 400px;
+        height: 500px;
+        background: #fff;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        border-radius: 10px;
+        position: relative;
+        padding: 30px;
+        overflow: hidden;
+    }
+
+    .page {
+        display: none;
+        height: 100%;
+    }
+
+    .page.active {
+        display: block;
+    }
+
+    h2 {
+        text-align: center;
+    }
+
+    .navigation {
+        position: absolute;
+        bottom: 15px;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        padding: 0 30px;
+        box-sizing: border-box;
+    }
+
+    button {
+        padding: 8px 15px;
+        border: none;
+        background: #4CAF50;
+        color: white;
+        cursor: pointer;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+
+    button:hover {
+        background: #45a049;
+    }
+
+</style>
+</head>
+<body>
+
+<div class="book">
+
+    <div class="page active">
+        <h2>Story 1</h2>
+        <p>
+            Once upon a time, in a small village, there lived a curious boy who loved adventures.
+            One day, he discovered a hidden path in the forest that led to a magical kingdom.
+        </p>
+    </div>
+
+    <div class="page">
+        <h2>Story 2</h2>
+        <p>
+            In the magical kingdom, animals could talk and trees could sing.
+            The boy met a wise old owl who told him about a hidden treasure.
+        </p>
+    </div>
+
+    <div class="page">
+        <h2>Story 3</h2>
+        <p>
+            The treasure was not gold, but knowledge and courage.
+            The boy returned home brave and wise, ready for new adventures.
+        </p>
+    </div>
+
+    <div class="navigation">
+        <button onclick="prevPage()">⬅ Prev</button>
+        <button onclick="nextPage()">Next ➡</button>
+    </div>
+
+</div>
+
+<script>
+    let currentPage = 0;
+    const pages = document.querySelectorAll('.page');
+
+    function showPage(index) {
+        pages.forEach((page, i) => {
+            page.classList.remove('active');
+            if (i === index) {
+                page.classList.add('active');
+            }
+        });
+    }
+
+    function nextPage() {
+        if (currentPage < pages.length - 1) {
+            currentPage++;
+            showPage(currentPage);
+        }
+    }
+
+    function prevPage() {
+        if (currentPage > 0) {
+            currentPage--;
+            showPage(currentPage);
+        }
+    }
+</script>
+
+</body>
+</html>
