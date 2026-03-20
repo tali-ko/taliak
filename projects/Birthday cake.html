@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Birthday Cake</title>
+<style>
+  body {
+    background: #fce4ec;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+  canvas {
+    background: white;
+    border: 2px solid #ccc;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="cakeCanvas" width="500" height="500"></canvas>
+
+<script>
+const canvas = document.getElementById("cakeCanvas");
+const ctx = canvas.getContext("2d");
+
+let glow = 0;
+let increasing = true;
+
+// Draw cake
+function drawCake() {
+  ctx.fillStyle = "#8B4513";
+  ctx.fillRect(150, 300, 200, 100);
+
+  ctx.fillStyle = "#ffcccb";
+  ctx.fillRect(150, 280, 200, 30);
+
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.arc(170 + i * 40, 310, 10, 0, Math.PI, false);
+    ctx.fill();
+  }
+}
+
+// Candles
+const colors = ["#ff4d4d", "#4da6ff", "#66ff66", "#ffcc00", "#cc66ff"];
+
+function drawCandle(x, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x, 220, 12, 60);
+
+  ctx.strokeStyle = "#fff";
+  for (let i = 0; i < 6; i++) {
+    ctx.beginPath();
+    ctx.moveTo(x, 225 + i * 10);
+    ctx.lineTo(x + 12, 225 + i * 10);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = "#000";
+  ctx.fillRect(x + 5, 210, 2, 10);
+
+  ctx.beginPath();
+  ctx.fillStyle = "orange";
+  ctx.arc(x + 6, 205, 7, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.fillStyle = "yellow";
+  ctx.arc(x + 6, 205, 4, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// 🌸 Flower function
+function drawFlower(x, y, petalColor) {
+  // petals
+  for (let i = 0; i < 6; i++) {
+    let angle = (i * Math.PI) / 3;
+    ctx.beginPath();
+    ctx.fillStyle = petalColor;
+    ctx.arc(
+      x + Math.cos(angle) * 8,
+      y + Math.sin(angle) * 8,
+      6,
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+  }
+
+  // center
+  ctx.beginPath();
+  ctx.fillStyle = "yellow";
+  ctx.arc(x, y, 5, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// Circular glowing text
+function drawCircularText() {
+  const text = "My dear lovely grandma, Happy Birthday";
+  const centerX = 250;
+  const centerY = 250;
+  const radius = 180;
+
+  ctx.save();
+  ctx.translate(centerX, centerY);
+
+  for (let i = 0; i < text.length; i++) {
+    let angle = (i / text.length) * Math.PI * 2;
+
+    ctx.save();
+    ctx.rotate(angle);
+
+    ctx.shadowColor = "gold";
+    ctx.shadowBlur = glow;
+
+    ctx.fillStyle = "purple";
+    ctx.font = "18px Arial";
+    ctx.fillText(text[i], 0, -radius);
+
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+// Animate
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  drawCake();
+
+  // Candles
+  const candlePositions = [170, 200, 230, 260, 290];
+  candlePositions.forEach((x, i) => drawCandle(x, colors[i % colors.length]));
+
+  // 🌸 Flowers around cake
+  drawFlower(140, 380, "pink");
+  drawFlower(170, 400, "red");
+  drawFlower(200, 385, "purple");
+  drawFlower(230, 400, "orange");
+  drawFlower(260, 385, "blue");
+  drawFlower(290, 400, "pink");
+  drawFlower(320, 380, "red");
+
+  // Text
+  drawCircularText();
+
+  // Glow animation
+  if (increasing) {
+    glow += 0.5;
+    if (glow > 20) increasing = false;
+  } else {
+    glow -= 0.5;
+    if (glow < 5) increasing = true;
+  }
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+</body>
+</html>
