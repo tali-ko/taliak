@@ -1,0 +1,267 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pro Tennis: Audio Edition</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        #scoreboard {
+            background: #333;
+            border: 4px solid #555;
+            padding: 10px 20px;
+            display: flex;
+            gap: 30px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            user-select: none;
+        }
+        .score-box {
+            text-align: center;
+            color: #ff0000;
+            background: #000;
+            padding: 5px 15px;
+            border-radius: 4px;
+            font-size: 32px;
+            font-weight: bold;
+            min-width: 60px;
+            border: 1px solid #444;
+        }
+        .label {
+            color: #aaa;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        canvas {
+            background-color: #35694d;
+            border: 8px solid #fff;
+            box-shadow: 0 0 30px rgba(0,0,0,0.7);
+            max-width: 95vw;
+            max-height: 70vh;
+            touch-action: none;
+            cursor: none;
+        }
+        #instructions {
+            color: #777;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="scoreboard">
+        <div>
+            <div class="label">Player</div>
+            <div id="pScore" class="score-box">0</div>
+        </div>
+        <div style="display: flex; align-items: center; color: #fff; font-size: 20px; padding-top: 15px;">VS</div>
+        <div>
+            <div class="label">Robot</div>
+            <div id="rScore" class="score-box">0</div>
+        </div>
+    </div>
+   
+    <canvas id="gameCanvas"></canvas>
+    <div id="instructions">Click/Touch anywhere to start audio</div>
+
+<script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const pScoreDoc = document.getElementById("pScore");
+    const rScoreDoc = document.getElementById("rScore");
+
+    const CANVAS_WIDTH = 800;
+    const CANVAS_HEIGHT = 500;
+    const RACKET_HEIGHT = 100;
+    const BALL_SIZE = 10;
+    const ROBOT_SPEED = 4.2;
+
+    canvas.width = CANVAS_WIDTH;
+    canvas.height = CANVAS_HEIGHT;
+
+    let playerX = 20;
+    let playerY = CANVAS_HEIGHT / 2 - RACKET_HEIGHT / 2;
+    let robotX = CANVAS_WIDTH - 60;
+    let robotY = CANVAS_HEIGHT / 2 - RACKET_HEIGHT / 2;
+    let ballX = CANVAS_WIDTH / 2;
+    let ballY = CANVAS_HEIGHT / 2;
+    let ballSpeedX = 6;
+    let ballSpeedY = 3;
+    let playerScore = 0;
+    let robotScore = 0;
+
+    // --- Audio Engine ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playWhackSound() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
+    }
+
+    function playCheerSound() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const bufferSize = audioCtx.sampleRate * 1.5;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1000, audioCtx.currentTime);
+        const gain = audioCtx.createGain();
+        gain.gain.setValueAtTime(0, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        noise.start();
+    }
+
+    // --- Input ---
+    function updatePlayerPos(x, y) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = CANVAS_WIDTH / rect.width;
+        const scaleY = CANVAS_HEIGHT / rect.height;
+        let targetX = (x - rect.left) * scaleX - 20;
+        let targetY = (y - rect.top) * scaleY - RACKET_HEIGHT / 2;
+        if (targetX < 10) targetX = 10;
+        if (targetX > CANVAS_WIDTH / 2 - 50) targetX = CANVAS_WIDTH / 2 - 50;
+        if (targetY < 0) targetY = 0;
+        if (targetY > CANVAS_HEIGHT - RACKET_HEIGHT) targetY = CANVAS_HEIGHT - RACKET_HEIGHT;
+        playerX = targetX;
+        playerY = targetY;
+    }
+
+    window.addEventListener("mousedown", () => { if (audioCtx.state === 'suspended') audioCtx.resume(); });
+    canvas.addEventListener("mousemove", (e) => updatePlayerPos(e.clientX, e.clientY));
+    canvas.addEventListener("touchmove", (e) => {
+        updatePlayerPos(e.touches[0].clientX, e.touches[0].clientY);
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        e.preventDefault();
+    }, { passive: false });
+
+    function resetBall() {
+        ballX = CANVAS_WIDTH / 2;
+        ballY = CANVAS_HEIGHT / 2;
+        ballSpeedX = -ballSpeedX;
+        ballSpeedY = (Math.random() - 0.5) * 8;
+        playCheerSound();
+    }
+
+    function drawRacket(x, y, isRobot) {
+        const color = isRobot ? "#e74c3c" : "#3498db";
+        ctx.save();
+        ctx.fillStyle = "#333";
+        ctx.fillRect(x + 15, y + RACKET_HEIGHT/2 - 2, 25, 4);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.ellipse(x + 20, y + RACKET_HEIGHT/2, 20, 45, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(255,255,255,0.3)";
+        ctx.lineWidth = 1;
+        for(let i = -15; i <= 15; i += 8) {
+            ctx.beginPath(); ctx.moveTo(x + 20 + i, y + RACKET_HEIGHT/2 - 40);
+            ctx.lineTo(x + 20 + i, y + RACKET_HEIGHT/2 + 40); ctx.stroke();
+        }
+        for(let i = -35; i <= 35; i += 8) {
+            ctx.beginPath(); ctx.moveTo(x + 5, y + RACKET_HEIGHT/2 + i);
+            ctx.lineTo(x + 35, y + RACKET_HEIGHT/2 + i); ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    function update() {
+        ballX += ballSpeedX;
+        ballY += ballSpeedY;
+        if (ballY < 10 || ballY > CANVAS_HEIGHT - 10) ballSpeedY = -ballSpeedY;
+        let robotCenter = robotY + (RACKET_HEIGHT / 2);
+        if (robotCenter < ballY - 30) robotY += ROBOT_SPEED;
+        else if (robotCenter > ballY + 30) robotY -= ROBOT_SPEED;
+
+        // Player Collision
+        if (ballX < playerX + 40 && ballX > playerX) {
+            if (ballY > playerY && ballY < playerY + RACKET_HEIGHT) {
+                ballSpeedX = Math.abs(ballSpeedX) * 1.05;
+                let deltaY = ballY - (playerY + RACKET_HEIGHT / 2);
+                ballSpeedY = deltaY * 0.25;
+                ballX = playerX + 41;
+                playWhackSound();
+            }
+        }
+        if (ballX < 0) { robotScore++; rScoreDoc.innerText = robotScore; resetBall(); }
+
+        // Robot Collision
+        if (ballX > robotX) {
+            if (ballY > robotY && ballY < robotY + RACKET_HEIGHT) {
+                ballSpeedX = -Math.abs(ballSpeedX);
+                let deltaY = ballY - (robotY + RACKET_HEIGHT / 2);
+                ballSpeedY = deltaY * 0.25;
+                ballX = robotX - 1;
+                playWhackSound();
+            } else if (ballX > CANVAS_WIDTH) { playerScore++; pScoreDoc.innerText = playerScore; resetBall(); }
+        }
+    }
+
+    function draw() {
+        ctx.fillStyle = "#35694d";
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 4;
+        ctx.setLineDash([]);
+        ctx.strokeRect(50, 50, CANVAS_WIDTH - 100, CANVAS_HEIGHT - 100);
+        ctx.beginPath();
+        ctx.moveTo(CANVAS_WIDTH/2, 50); ctx.lineTo(CANVAS_WIDTH/2, CANVAS_HEIGHT-50);
+        ctx.moveTo(200, 50); ctx.lineTo(200, CANVAS_HEIGHT-50);
+        ctx.moveTo(600, 50); ctx.lineTo(600, CANVAS_HEIGHT-50);
+        ctx.moveTo(200, CANVAS_HEIGHT/2); ctx.lineTo(600, CANVAS_HEIGHT/2);
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(255,255,255,0.5)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath(); ctx.moveTo(CANVAS_WIDTH/2, 0); ctx.lineTo(CANVAS_WIDTH/2, CANVAS_HEIGHT); ctx.stroke();
+        drawRacket(playerX, playerY, false);
+        drawRacket(robotX, robotY, true);
+        ctx.beginPath();
+        ctx.fillStyle = "#ccff00";
+        ctx.arc(ballX, ballY, BALL_SIZE, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([]);
+        ctx.beginPath(); ctx.arc(ballX - 8, ballY, 8, -0.5, 0.5); ctx.stroke();
+    }
+
+    function gameLoop() { update(); draw(); requestAnimationFrame(gameLoop); }
+    gameLoop();
+</script>
+</body>
+</html>
